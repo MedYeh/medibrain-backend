@@ -14,7 +14,10 @@ app.use(express.json());
 
 // Connect to MongoDB
 connectToDatabase();
-
+// Define a route for the root path
+app.get('/', (req, res) => {
+  res.send('Welcome to the API!');
+});
 // Use routes
 app.use('/', userRoutes);
 
