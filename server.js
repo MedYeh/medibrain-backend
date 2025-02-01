@@ -14,7 +14,9 @@ app.use(express.json());
 
 // Connect to MongoDB
 connectToDatabase();
-
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
 
 // Use routes
 app.use('/', userRoutes);
