@@ -1,16 +1,18 @@
 // models/User.js
 import mongoose from 'mongoose';
 
-// Define the User schema
-const userSchema = new mongoose.Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
+const userSchema = new mongoose.Schema(
+  {
+    nom: { type: String, required: true },
+    prenom: { type: String, required: true },
+    sexe: { type: String, required: true, enum: ['homme', 'femme'] },
+    profil: { type: String, required: true, enum: ['patient', 'medecin'] },
+    paysRegions: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true }
   },
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-// Create and export the User model
 const User = mongoose.model('User', userSchema);
 export default User;

@@ -1,27 +1,34 @@
+// controllers/userController.js
 import User from '../models/User.js';
+import bcrypt from 'bcrypt';
 
 export const createUser = async (req, res) => {
-  const { email } = req.body;
-
-  // Check if email is provided
-  if (!email) {
-    return res.status(400).json({ message: "Email is required" });
-  }
-
   try {
-    // Check if the email is already in use
+    const { nom, prenom, sexe, profil, paysRegions, email, password } = req.body;
+
+    // Check if the user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email is already in use" });
+      return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create a new user
-    const newUser = new User({ email });
-    await newUser.save();
+    // Hash the password before saving to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    return res.status(201).json({ message: "User created successfully", user: newUser });
+    // Create the new user document
+    const newUser = await User.create({
+      nom,
+      prenom,
+      sexe,
+      profil,
+      paysRegions,
+      email,
+      password: hashedPassword
+    });
+
+    res.status(201).json({ message: 'User created successfully', user: newUser });
   } catch (error) {
-    console.error('Error creating user:', error);
-    return res.status(500).json({ message: "Server error" });
+    console.error('Error creating user: ', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
