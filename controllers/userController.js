@@ -13,7 +13,6 @@ export const createUser = async (req, res) => {
     }
 
     // Hash the password before saving to the database
-    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the new user document
     const newUser = await User.create({
@@ -23,7 +22,7 @@ export const createUser = async (req, res) => {
       profil,
       paysRegions,
       email,
-      password: hashedPassword
+      password
     });
 
     res.status(201).json({ message: 'User created successfully', user: newUser });
