@@ -11,7 +11,8 @@ dotenv.config();
 const app = express();
 
 // Middleware to parse JSON request bodies
-app.use(express.json());
+app.use(bodyParser.json());
+
 // Connect to MongoDB
 connectToDatabase();
 

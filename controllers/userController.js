@@ -1,7 +1,6 @@
 // controllers/userController.js
 import User from '../models/User.js';
-import bcrypt from 'bcrypt';
-
+import bcrypt from 'bcryptjs';
 export const createUser = async (req, res) => {
   try {
     const { nom, prenom, sexe, profil, paysRegions, email, password } = req.body;
@@ -13,6 +12,7 @@ export const createUser = async (req, res) => {
     }
 
     // Hash the password before saving to the database
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create the new user document
     const newUser = await User.create({
@@ -22,7 +22,7 @@ export const createUser = async (req, res) => {
       profil,
       paysRegions,
       email,
-      password
+      password: hashedPassword
     });
 
     res.status(201).json({ message: 'User created successfully', user: newUser });
