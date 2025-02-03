@@ -2,6 +2,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import connectToDatabase from './utils/db.js';
+import bodyParser from "body-parser";
+
 import userRoutes from './routes/userRoutes.js';
 
 dotenv.config();
@@ -9,7 +11,7 @@ dotenv.config();
 const app = express();
 
 // Middleware to parse JSON request bodies
-app.use(express.json());
+app.use(bodyParser.json());
 
 // Connect to MongoDB
 connectToDatabase();
