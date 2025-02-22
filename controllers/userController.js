@@ -32,7 +32,7 @@ export const createUser = async (req, res) => {
   }
 };
 
-exports.loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { email, password} = req.body;
   const secretKey = "VOTRE_CLE_SECRETE";
   console.log("loginUser called");
@@ -40,7 +40,7 @@ exports.loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email: email });
     console.log("User", user);
-    
+
     if (!user) {
       return res.status(400).send({ message: "Utilisateur non trouvé" });
     }
