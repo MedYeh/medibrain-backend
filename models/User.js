@@ -9,6 +9,12 @@ const userSchema = new mongoose.Schema(
     profil: { type: String, required: true, enum: ['patient', 'medecin'] },
     paysRegions: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    type: {
+      type: String,
+      required: true,
+      trim: true,
+      default: "normal", // Valeur par défaut définie ici
+    },
     password: { type: String, required: true }
   },
   { timestamps: true }
