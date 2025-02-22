@@ -1,6 +1,7 @@
 // controllers/userController.js
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 export const createUser = async (req, res) => {
   try {
     const { nom, prenom, sexe, profil, paysRegions, email, password } = req.body;
