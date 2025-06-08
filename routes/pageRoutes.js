@@ -1,4 +1,3 @@
-// routes/pageRoutes.js
 import express from 'express';
 import {
   createPage,
@@ -8,12 +7,13 @@ import {
 
 const router = express.Router();
 
-// Route to create a new page and get all pages (lightweight version)
-router.post('/pages', createPage);
-router.get('/getpages', getPages);
+// Create a new page
+router.post('/', createPage);
 
-// Route to get a single page by its ID (full content)
-router.get('/pages/:id', getPageById);
-// You can later add: router.put('/pages/:id', updatePage); etc.
+// List all pages (lightweight)
+router.get('/', getPages);
+
+// Get one page by ID (full content)
+router.get('/:id', getPageById);
 
 export default router;

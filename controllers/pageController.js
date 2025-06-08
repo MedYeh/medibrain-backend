@@ -36,9 +36,7 @@ const buildSectionTree = (sections) => {
     return tree;
 };
 
-// @desc    Create a new page
-// @route   POST /api/pages
-// @access  Private
+
 const createPage = async (req, res) => {
     try {
         const { title, category, description, sections: flatSections } = req.body;
@@ -66,9 +64,7 @@ const createPage = async (req, res) => {
     }
 };
 
-// @desc    Get all pages (metadata only)
-// @route   GET /api/pages
-// @access  Public
+
 const getPages = async (req, res) => {
     try {
         const pages = await Page.find().select('-sections').sort({ createdAt: -1 });
@@ -78,9 +74,7 @@ const getPages = async (req, res) => {
     }
 };
 
-// @desc    Get a single page by ID with full content
-// @route   GET /api/pages/:id
-// @access  Public
+
 const getPageById = async (req, res) => {
     try {
         const page = await Page.findById(req.params.id);
