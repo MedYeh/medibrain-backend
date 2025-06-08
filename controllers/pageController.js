@@ -59,7 +59,7 @@ const createPage = async (req, res) => {
 
         const savedPage = await newPage.save();
         res.status(201).json(savedPage);
-
+        console.log("sucess");
     } catch (error) {
         console.error('Error creating page:', error);
         res.status(500).json({ message: 'Server Error' });

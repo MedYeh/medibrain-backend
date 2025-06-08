@@ -10,7 +10,7 @@ const router = express.Router();
 
 // Route to create a new page and get all pages (lightweight version)
 router.post('/pages', createPage);
-router.get('/pages', getPages);
+router.get('/getpages', getPages);
 
 // Route to get a single page by its ID (full content)
 router.get('/pages/:id', getPageById);
