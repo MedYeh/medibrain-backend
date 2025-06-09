@@ -1,4 +1,6 @@
+// routes/pageRoutes.js
 import express from 'express';
+import multer from 'multer';
 import {
   createPage,
   getPages,
@@ -7,13 +9,19 @@ import {
 
 const router = express.Router();
 
-// Create a new page
-router.post('/', createPage);
+// Multer in-memory storage
+const upload = multer({ storage: multer.memoryStorage() });
 
-// List all pages (lightweight)
+/**
+ * POST /api/pages
+ * Expects:
+ *   - req.body.sections       (stringified JSON array of your flat sections)
+ *   - files named "image_<frontendId>" for each image section
+ */
+router.post('/', upload.any(), createPage);
+
+// GET list & single-page
 router.get('/', getPages);
-
-// Get one page by ID (full content)
 router.get('/:id', getPageById);
 
 export default router;

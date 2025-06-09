@@ -1,102 +1,103 @@
+// controllers/pageController.js
 import Page from '../models/Page.js';
 
-// Helper function to build the nested tree from the flat array sent by the frontend
+// buildSectionTree: takes flat array, returns nested children
 const buildSectionTree = (sections) => {
-  const sectionMap = new Map();
+  const map = new Map();
+  sections.forEach(s => map.set(s.frontendId, { ...s, children: [] }));
 
-  // Map each section by its frontendId
-  sections.forEach(section => {
-    sectionMap.set(section.frontendId, {
-      ...section,
-      children: [],
-    });
-  });
-
-  const tree = [];
-
-  // Build tree by assigning children to their parents
-  sections.forEach(section => {
-    if (section.parentId && sectionMap.has(section.parentId)) {
-      sectionMap.get(section.parentId).children.push(sectionMap.get(section.frontendId));
+  const roots = [];
+  sections.forEach(s => {
+    const node = map.get(s.frontendId);
+    if (s.parentId != null && map.has(s.parentId)) {
+      map.get(s.parentId).children.push(node);
     } else {
-      tree.push(sectionMap.get(section.frontendId));
+      roots.push(node);
     }
   });
 
-  // Recursively sort children by order
-  const sortChildrenRecursive = (nodes) => {
-    nodes.sort((a, b) => a.order - b.order);
-    nodes.forEach(node => {
-      if (node.children.length > 0) {
-        sortChildrenRecursive(node.children);
-      }
-    });
+  const sortRec = nodes => {
+    nodes.sort((a,b)=>a.order - b.order);
+    nodes.forEach(n => n.children && sortRec(n.children));
   };
-
-  sortChildrenRecursive(tree);
-  return tree;
+  sortRec(roots);
+  return roots;
 };
 
 const createPage = async (req, res) => {
   try {
-    const { title, category, description, sections: flatSections } = req.body;
-
-    // Validate required fields
+    // sections arrive as JSON-string in req.body.sections
+    const { title, category, description } = req.body;
+    let flat = [];
+    if (req.body.sections) {
+      flat = JSON.parse(req.body.sections);
+    }
     if (!title || !category) {
-      return res.status(400).json({ message: 'Title and category are required' });
+      return res.status(400).json({ message: 'Title and category required' });
     }
 
-    // Transform flat sections to include frontendId and ensure defaults
-    const sectionsWithFrontendId = flatSections.map(section => ({
-      frontendId: section.frontendId,
-      type: section.type,
-      title: section.title || '',
-      contentDelta: section.contentDelta || null,
-      backgroundColor: section.backgroundColor || '#f3f4f6',
-      highlightColor: section.highlightColor || '#4b5563',
-      parentId: section.parentId || null,
-      order: section.order,
-    }));
+    // for each flat section, merge in any file
+    const sectionsWithFrontendId = flat.map(s => {
+      const base = {
+        frontendId:    s.frontendId,
+        type:          s.type,
+        title:         s.title || '',
+        contentDelta:  s.contentDelta || null,
+        backgroundColor:s.backgroundColor || '#f3f4f6',
+        highlightColor: s.highlightColor || '#4b5563',
+        parentId:      s.parentId != null ? s.parentId : null,
+        order:         s.order,
+      };
 
-    // Build nested section tree
-    const nestedSections = buildSectionTree(sectionsWithFrontendId);
-
-    // Create and save new page
-    const newPage = new Page({
-      title,
-      category,
-      description: description || '',
-      sections: nestedSections,
+      if (s.type === 'image') {
+        // multer puts all files into req.files array
+        // our client named each file field "image_<frontendId>"
+        const key = `image_${s.frontendId}`;
+        const file = (req.files || []).find(f => f.fieldname === key);
+        if (file) {
+          base.filename    = file.originalname;
+          base.data        = file.buffer;
+          base.contentType = file.mimetype;
+        }
+      }
+      return base;
     });
 
-    const savedPage = await newPage.save();
-    res.status(201).json(savedPage);
-  } catch (error) {
-    console.error('Error creating page:', error);
-    res.status(500).json({ message: 'Server Error' });
+    const nested = buildSectionTree(sectionsWithFrontendId);
+    const page = new Page({
+      title, category,
+      description: description || '',
+      sections: nested
+    });
+
+    const saved = await page.save();
+    return res.status(201).json(saved);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
 const getPages = async (req, res) => {
   try {
-    const pages = await Page.find().select('-sections').sort({ createdAt: -1 });
-    res.status(200).json(pages);
-  } catch (error) {
-    console.error('Error fetching pages:', error);
-    res.status(500).json({ message: 'Server Error' });
+    const pages = await Page.find()
+      .select('-sections')
+      .sort({ createdAt: -1 });
+    res.json(pages);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
 const getPageById = async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);
-    if (!page) {
-      return res.status(404).json({ message: 'Page not found' });
-    }
-    res.status(200).json(page);
-  } catch (error) {
-    console.error('Error fetching page:', error);
-    res.status(500).json({ message: 'Server Error' });
+    if (!page) return res.status(404).json({ message: 'Not found' });
+    res.json(page);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

@@ -1,26 +1,37 @@
+// models/Page.js
 import mongoose from 'mongoose';
-
 const { Schema, model } = mongoose;
 
-const SectionSchema = new Schema();
+// Define SectionSchema up front (recursive)
+const SectionSchema = new Schema({
+  frontendId:    { type: Number, required: true }, 
+  type:          { type: String, required: true, enum: ['expandable','raw_text','info_box','image'] },
+  title:         { type: String, default: '' },
+  contentDelta:  { type: Schema.Types.Mixed, default: null },
 
-SectionSchema.add({
-  frontendId: { type: Number }, // Temporary ID from frontend
-  type: { type: String, required: true, enum: ['expandable', 'raw_text', 'info_box'] },
-  title: { type: String, default: '' },
-  contentDelta: { type: Schema.Types.Mixed, default: null },
-  backgroundColor: { type: String, default: '#f3f4f6' },
+  // image fields (only populated when type==='image')
+  filename:      { type: String, default: null },
+  data:          { type: Buffer },
+  contentType:   { type: String, default: null },
+
+  backgroundColor:{ type: String, default: '#f3f4f6' },
   highlightColor: { type: String, default: '#4b5563' },
-  parentId: { type: Number, default: null }, // For frontend nesting logic
-  order: { type: Number, required: true },
-  children: [SectionSchema], // Recursive structure
+
+  parentId:      { type: Number, default: null },
+  order:         { type: Number, required: true },
+
+  // recursive children
+  children:      [ /* will be set below */ ]
 });
 
+// now that SectionSchema exists, enable recursion:
+SectionSchema.add({ children: [SectionSchema] });
+
 const PageSchema = new Schema({
-  title: { type: String, required: true, trim: true },
-  category: { type: String, required: true, trim: true },
+  title:       { type: String, required: true, trim: true },
+  category:    { type: String, required: true, trim: true },
   description: { type: String, trim: true, default: '' },
-  sections: [SectionSchema],
+  sections:    { type: [SectionSchema], default: [] },
 }, { timestamps: true });
 
 export default model('Page', PageSchema);

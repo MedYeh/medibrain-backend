@@ -10,6 +10,9 @@ import userRoutes from './routes/userRoutes.js';
 dotenv.config();
 
 const app = express();
+// allow large JSON payloads (for base64) if you ever send images inside JSON:
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
   origin: [
     'http://localhost:5173',
