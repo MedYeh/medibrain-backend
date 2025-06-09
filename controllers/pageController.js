@@ -90,15 +90,39 @@ const getPages = async (req, res) => {
   }
 };
 
+// const getPageById = async (req, res) => {
+//   try {
+//     const page = await Page.findById(req.params.id);
+//     if (!page) return res.status(404).json({ message: 'Not found' });
+//     res.json(page);
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// };
+
+// export { createPage, getPages, getPageById };
 const getPageById = async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);
     if (!page) return res.status(404).json({ message: 'Not found' });
+
+    // Convert binary image data to base64
+    const convertImages = (sections) => {
+      return sections.map(section => {
+        if (section.type === 'image' && section.data) {
+          const base64 = section.data.toString('base64');
+          section.imageData = `data:${section.contentType};base64,${base64}`;
+          delete section.data; // Optional: remove binary data to reduce response size
+        }
+        return section;
+      });
+    };
+
+    page.sections = convertImages(page.sections);
     res.json(page);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 };
-
-export { createPage, getPages, getPageById };
