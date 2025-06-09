@@ -107,29 +107,39 @@ const getPageById = async (req, res) => {
     const page = await Page.findById(req.params.id);
     if (!page) return res.status(404).json({ message: 'Not found' });
 
-   const convertImages = (sections) => {
-  return sections.map(section => {
-    if (section.type === 'image' && section.data) {
-      try {
-        // Convert MongoDB Binary to Buffer first
-        const buffer = section.data instanceof Buffer 
-          ? section.data 
-          : Buffer.from(section.data.buffer || section.data);
+    // Recursive function to convert images at all levels
+    const convertImages = (sections) => {
+      return sections.map(section => {
+        if (section.type === 'image' && section.data) {
+          try {
+            // Convert MongoDB Binary/Buffer to base64
+            const buffer = section.data instanceof Buffer 
+              ? section.data 
+              : Buffer.from(section.data.buffer || section.data);
+            
+            const base64 = buffer.toString('base64');
+            section.imageData = `data:${section.contentType};base64,${base64}`;
+            delete section.data; // Remove binary data from response
+          } catch (error) {
+            console.error('Error converting image data:', error);
+            section.imageData = null;
+          }
+        }
         
-        const base64 = buffer.toString('base64');
-        section.imageData = `data:${section.contentType};base64,${base64}`;
-        delete section.data;
-      } catch (error) {
-        console.error('Error converting image data:', error);
-        section.imageData = null; // Set to null if conversion fails
-      }
-    }
-    return section;
-  });
-};
+        // Recursively process children
+        if (section.children && section.children.length > 0) {
+          section.children = convertImages(section.children);
+        }
+        
+        return section;
+      });
+    };
 
-    page.sections = convertImages(page.sections);
-    res.json(page);
+    // Convert the page to a plain object so we can modify it
+    const pageObj = page.toObject();
+    pageObj.sections = convertImages(pageObj.sections);
+    
+    res.json(pageObj);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
