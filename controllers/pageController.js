@@ -107,17 +107,26 @@ const getPageById = async (req, res) => {
     const page = await Page.findById(req.params.id);
     if (!page) return res.status(404).json({ message: 'Not found' });
 
-    // Convert binary image data to base64
-    const convertImages = (sections) => {
-      return sections.map(section => {
-        if (section.type === 'image' && section.data) {
-          const base64 = section.data.toString('base64');
-          section.imageData = `data:${section.contentType};base64,${base64}`;
-          delete section.data; // Optional: remove binary data to reduce response size
-        }
-        return section;
-      });
-    };
+   const convertImages = (sections) => {
+  return sections.map(section => {
+    if (section.type === 'image' && section.data) {
+      try {
+        // Convert MongoDB Binary to Buffer first
+        const buffer = section.data instanceof Buffer 
+          ? section.data 
+          : Buffer.from(section.data.buffer || section.data);
+        
+        const base64 = buffer.toString('base64');
+        section.imageData = `data:${section.contentType};base64,${base64}`;
+        delete section.data;
+      } catch (error) {
+        console.error('Error converting image data:', error);
+        section.imageData = null; // Set to null if conversion fails
+      }
+    }
+    return section;
+  });
+};
 
     page.sections = convertImages(page.sections);
     res.json(page);
