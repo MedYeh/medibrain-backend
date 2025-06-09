@@ -39,14 +39,21 @@ const createPage = async (req, res) => {
     // for each flat section, merge in any file
     const sectionsWithFrontendId = flat.map(s => {
       const base = {
-        frontendId:    s.frontendId,
-        type:          s.type,
-        title:         s.title || '',
-        contentDelta:  s.contentDelta || null,
-        backgroundColor:s.backgroundColor || '#f3f4f6',
-        highlightColor: s.highlightColor || '#4b5563',
-        parentId:      s.parentId != null ? s.parentId : null,
-        order:         s.order,
+        frontendId:      s.frontendId,
+        type:            s.type,
+        title:           s.title || '',
+        contentDelta:    s.contentDelta || null,
+        backgroundColor: s.backgroundColor || '#f3f4f6',
+        highlightColor:  s.highlightColor || '#4b5563',
+        titleTextColor:  s.titleTextColor || '#ffffff',
+        borderWidth:     s.borderWidth !== undefined ? s.borderWidth : 0,
+        borderStyle:     s.borderStyle || 'solid',
+        borderColor:     s.borderColor || '#e0f2fe',
+        width:           s.width || '100%',
+        alignment:       s.alignment || 'center',
+        isExpanded:      s.isExpanded !== undefined ? s.isExpanded : true,
+        parentId:        s.parentId != null ? s.parentId : null,
+        order:           s.order,
       };
 
       if (s.type === 'image') {
@@ -90,18 +97,6 @@ const getPages = async (req, res) => {
   }
 };
 
-// const getPageById = async (req, res) => {
-//   try {
-//     const page = await Page.findById(req.params.id);
-//     if (!page) return res.status(404).json({ message: 'Not found' });
-//     res.json(page);
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// };
-
-// 
 const getPageById = async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);
@@ -145,4 +140,5 @@ const getPageById = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 export { createPage, getPages, getPageById };

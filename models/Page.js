@@ -14,9 +14,18 @@ const SectionSchema = new Schema({
   data:          { type: Buffer },
   contentType:   { type: String, default: null },
 
+  // styling properties
   backgroundColor:{ type: String, default: '#f3f4f6' },
   highlightColor: { type: String, default: '#4b5563' },
+  titleTextColor: { type: String, default: '#ffffff' },
+  borderWidth:    { type: Number, default: 0 },
+  borderStyle:    { type: String, default: 'solid' },
+  borderColor:    { type: String, default: '#e0f2fe' },
+  width:          { type: String, default: '100%' },
+  alignment:      { type: String, default: 'center' },
+  isExpanded:     { type: Boolean, default: true },
 
+  // hierarchy properties
   parentId:      { type: Number, default: null },
   order:         { type: Number, required: true },
 
