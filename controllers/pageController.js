@@ -101,7 +101,7 @@ const getPages = async (req, res) => {
 //   }
 // };
 
-// export { createPage, getPages, getPageById };
+// 
 const getPageById = async (req, res) => {
   try {
     const page = await Page.findById(req.params.id);
@@ -126,3 +126,4 @@ const getPageById = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+export { createPage, getPages, getPageById };
