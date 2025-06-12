@@ -2,26 +2,27 @@
 import express from 'express';
 import multer from 'multer';
 import {
-  createPage,
-  getPages,
-  getPageById
+    createPage,
+    getPages,
+    getPageById,
+    updatePage,   // Import new controller
+    deletePage    // Import new controller
 } from '../controllers/pageController.js';
 
 const router = express.Router();
-
-// Multer in-memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
-/**
- * POST /api/pages
- * Expects:
- *   - req.body.sections       (stringified JSON array of your flat sections)
- *   - files named "image_<frontendId>" for each image section
- */
+// CREATE
 router.post('/', upload.any(), createPage);
 
-// GET list & single-page
+// READ
 router.get('/', getPages);
 router.get('/:id', getPageById);
+
+// UPDATE
+router.put('/:id', upload.any(), updatePage);
+
+// DELETE
+router.delete('/:id', deletePage);
 
 export default router;
