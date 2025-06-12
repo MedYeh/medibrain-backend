@@ -35,7 +35,7 @@ export const createUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   const { email, password} = req.body;
-  const secretKey = "VOTRE_CLE_SECRETE";
+  const secretKey = process.env.JWT_SECRET;
   console.log("loginUser called");
   console.log("Req body : ", req.body);
   try {
