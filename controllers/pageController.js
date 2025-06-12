@@ -155,34 +155,50 @@ const getPages = async (req, res) => {
     }
 };
 
+// controllers/pageController.js
+
 const getPageById = async (req, res) => {
-    // ... (This function is the same, no changes needed)
     try {
         const page = await Page.findById(req.params.id);
-        if (!page) return res.status(404).json({ message: 'Not found' });
-        
+        if (!page) {
+            return res.status(404).json({ message: 'Page not found' });
+        }
+
+        // --- THIS IS THE FIX ---
+        // A simpler, more robust recursive function to convert images.
         const convertImages = (sections) => {
-          return sections.map(section => {
-            if (section.type === 'image' && section.data) {
-              const base64 = Buffer.from(section.data).toString('base64');
-              section.imageData = `data:${section.contentType};base64,${base64}`;
-              delete section.data;
-            }
-            if (section.children && section.children.length > 0) {
-              section.children = convertImages(section.children);
-            }
-            return section;
-          });
+            return sections.map(section => {
+                // If it's an image section with binary data...
+                if (section.type === 'image' && section.data && section.contentType) {
+                    // Directly convert the buffer to a base64 string.
+                    const base64 = section.data.toString('base64');
+                    // Create the full data URI for the <img> src attribute.
+                    section.imageData = `data:${section.contentType};base64,${base64}`;
+                }
+                
+                // Important: We no longer delete `section.data` here. Let the client get what it needs.
+                
+                // Recursively process any children.
+                if (section.children && section.children.length > 0) {
+                    section.children = convertImages(section.children);
+                }
+                
+                return section;
+            });
         };
 
+        // Convert the Mongoose document to a plain JavaScript object to modify it.
         const pageObj = page.toObject();
+        // Run the conversion on the sections.
         pageObj.sections = convertImages(pageObj.sections);
 
         res.json(pageObj);
+
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error("Error in getPageById:", err);
+        res.status(500).json({ message: 'Server error while fetching page' });
     }
 };
 
+// ... make sure getPageById is exported along with your other functions
 export { createPage, getPages, getPageById, updatePage, deletePage };
