@@ -23,59 +23,78 @@ const buildSectionTree = (sections) => {
     return roots;
 };
 
-// Helper function to process sections for both create and update
-const processSections = (flatSections, files) => {
+// controllers/pageController.js
+
+// ... (keep all your other imports and functions like buildSectionTree)
+
+// 1. REPLACE your old processSections with this new version
+const processSections = (flatSections, files, existingPage = null) => {
+    // --- THIS IS NEW ---
+    // Create a map of existing images for quick lookup if we are editing.
+    const existingImageMap = new Map();
+    if (existingPage) {
+        const flatten = (sections) => {
+            for (const section of sections) {
+                if (section.type === 'image' && section.data) {
+                    existingImageMap.set(section.frontendId, {
+                        filename: section.filename,
+                        data: section.data,
+                        contentType: section.contentType,
+                    });
+                }
+                if (section.children?.length) flatten(section.children);
+            }
+        };
+        flatten(existingPage.sections);
+    }
+    // --- END NEW ---
+
     return flatSections.map(s => {
         const base = {
-            frontendId:      s.frontendId,
-            type:            s.type,
-            title:           s.title || '',
-            contentDelta:    s.contentDelta || null,
-            backgroundColor: s.backgroundColor || '#f3f4f6',
-            highlightColor:  s.highlightColor || '#4b5563',
-            titleTextColor:  s.titleTextColor || '#ffffff',
-            borderWidth:     s.borderWidth !== undefined ? s.borderWidth : 0,
-            borderStyle:     s.borderStyle || 'solid',
-            borderColor:     s.borderColor || '#e0f2fe',
-            width:           s.width || '100%',
-            alignment:       s.alignment || 'center',
-            isExpanded:      s.isExpanded !== undefined ? s.isExpanded : true,
-            parentId:        s.parentId != null ? s.parentId : null,
-            order:           s.order,
+            frontendId: s.frontendId,
+            type: s.type,
+            title: s.title || '',
+            contentDelta: s.contentDelta || null,
+            // ... (all your other base properties)
+            backgroundColor: s.backgroundColor, highlightColor: s.highlightColor, titleTextColor: s.titleTextColor,
+            borderWidth: s.borderWidth, borderStyle: s.borderStyle, borderColor: s.borderColor,
+            width: s.width, alignment: s.alignment, isExpanded: s.isExpanded, parentId: s.parentId, order: s.order,
         };
 
         if (s.type === 'image') {
             const key = `image_${s.frontendId}`;
             const file = (files || []).find(f => f.fieldname === key);
+            
             if (file) {
-                base.filename    = file.originalname;
-                base.data        = file.buffer;
+                // A new file was uploaded, use it.
+                base.filename = file.originalname;
+                base.data = file.buffer;
                 base.contentType = file.mimetype;
+            } else if (existingImageMap.has(s.frontendId)) {
+                // --- THIS IS THE FIX ---
+                // No new file, so preserve the old image data from the database.
+                const existingImage = existingImageMap.get(s.frontendId);
+                base.filename = existingImage.filename;
+                base.data = existingImage.data;
+                base.contentType = existingImage.contentType;
             }
         }
         return base;
     });
 };
 
+// 2. UPDATE how you call processSections in createPage
 const createPage = async (req, res) => {
     try {
         const { title, category, description } = req.body;
         let flat = req.body.sections ? JSON.parse(req.body.sections) : [];
-
-        if (!title || !category) {
-            return res.status(400).json({ message: 'Title and category required' });
-        }
-
+        if (!title || !category) return res.status(400).json({ message: 'Title and category required' });
+        
+        // No change here, we just don't pass an existing page.
         const sectionsWithData = processSections(flat, req.files);
+        
         const nestedSections = buildSectionTree(sectionsWithData);
-
-        const page = new Page({
-            title,
-            category,
-            description: description || '',
-            sections: nestedSections
-        });
-
+        const page = new Page({ title, category, description: description || '', sections: nestedSections });
         const savedPage = await page.save();
         res.status(201).json(savedPage);
     } catch (err) {
@@ -84,44 +103,30 @@ const createPage = async (req, res) => {
     }
 };
 
-// NEW: Function to update an existing page
+// 3. UPDATE how you call processSections in updatePage
 const updatePage = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, category, description } = req.body;
         let flat = req.body.sections ? JSON.parse(req.body.sections) : [];
 
-        if (!title || !category) {
-            return res.status(400).json({ message: 'Title and category are required.' });
-        }
-
-        // We need to fetch the existing page to see which images need to be preserved
         const existingPage = await Page.findById(id);
-        if (!existingPage) {
-            return res.status(404).json({ message: 'Page not found.' });
-        }
-        
-        // This is a simplified update: we overwrite sections completely.
-        // A more complex implementation could merge existing images if they haven't been replaced.
-        const sectionsWithData = processSections(flat, req.files);
+        if (!existingPage) return res.status(404).json({ message: 'Page not found.' });
+
+        // Pass the existingPage to our new helper function
+        const sectionsWithData = processSections(flat, req.files, existingPage);
+
         const nestedSections = buildSectionTree(sectionsWithData);
-
-        const updateData = {
-            title,
-            category,
-            description: description || '',
-            sections: nestedSections
-        };
-
+        const updateData = { title, category, description: description || '', sections: nestedSections };
         const updatedPage = await Page.findByIdAndUpdate(id, updateData, { new: true });
         res.status(200).json(updatedPage);
-
     } catch (err) {
         console.error("Error updating page:", err);
         res.status(500).json({ message: 'Server error while updating page.' });
     }
 };
 
+// ... (make sure to export your functions)
 
 // NEW: Function to delete a page
 const deletePage = async (req, res) => {
