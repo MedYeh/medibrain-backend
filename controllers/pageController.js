@@ -199,6 +199,25 @@ const getPageById = async (req, res) => {
         res.status(500).json({ message: 'Server error while fetching page' });
     }
 };
+ const searchPages = async (req, res) => {
+    try {
+        const searchTerm = req.query.term;
+        if (!searchTerm) {
+            return res.status(400).json({ message: "Search term is required" });
+        }
 
+        const pages = await Page.find(
+            { $text: { $search: searchTerm } },
+            { score: { $meta: "textScore" } } // Optional: score results by relevance
+        )
+        .select('-sections') // Exclude heavy section data
+        .sort({ score: { $meta: "textScore" } }); // Sort by relevance
+
+        res.json(pages);
+    } catch (error) {
+        console.error("Search error:", error);
+        res.status(500).json({ message: "Server error during search." });
+    }
+};
 // ... make sure getPageById is exported along with your other functions
-export { createPage, getPages, getPageById, updatePage, deletePage };
+export { createPage, getPages, getPageById, updatePage, deletePage,searchPages };

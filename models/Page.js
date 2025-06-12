@@ -42,5 +42,6 @@ const PageSchema = new Schema({
   description: { type: String, trim: true, default: '' },
   sections:    { type: [SectionSchema], default: [] },
 }, { timestamps: true });
+PageSchema.index({ title: 'text', description: 'text', category: 'text' });
 
 export default model('Page', PageSchema);
