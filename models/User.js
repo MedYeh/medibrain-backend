@@ -15,8 +15,14 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: "normal", // Valeur par défaut définie ici
     },
-    password: { type: String, required: true }
+    password: { type: String, required: true },
+     role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user'
+    }
   },
+  
   { timestamps: true }
 );
 

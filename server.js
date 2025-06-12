@@ -7,6 +7,8 @@ import connectToDatabase from './utils/db.js';
 import bodyParser from "body-parser";
 import pageRoutes from './routes/pageRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import adminRoutes from './routes/adminRoutes.js'; // <-- Import
+
 dotenv.config();
 
 const app = express();
@@ -34,6 +36,8 @@ app.get("/", (req, res) => {
 // Use the user routes with the base path '/'
 app.use('/api/users/', userRoutes);
 app.use('/api/pages', pageRoutes);
+app.use('/api/admin', adminRoutes); // <-- Add this line
+
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {

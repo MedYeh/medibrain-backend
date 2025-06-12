@@ -52,7 +52,7 @@ export const loginUser = async (req, res) => {
     }
 
 
-    const token = jwt.sign({ userId: user._id }, secretKey, {
+    const token = jwt.sign({ userId: user._id, role: user.role }, secretKey, {
       expiresIn: "1d",
     });
     res.status(200).send({
