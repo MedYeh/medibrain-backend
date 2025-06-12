@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
 });
 
 // Use the user routes with the base path '/'
-app.use('/', userRoutes);
+app.use('/api/users/', userRoutes);
 app.use('/api/pages', pageRoutes);
 
 const port = process.env.PORT || 5000;
