@@ -18,7 +18,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://medibrain-9d955b214636.herokuapp.com'
+     'https://medibrainweb.vercel.app',
+    'https://medibrain-backend.onrender.com'
   ],
   credentials: true
 }));
