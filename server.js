@@ -19,7 +19,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
      'https://medibrainweb.vercel.app',
-    'https://medibrain-backend.onrender.com'
+    'https://medibrain-backend.onrender.com',
+     'https://medi-brain-web.vercel.app'
   ],
   credentials: true
 }));
